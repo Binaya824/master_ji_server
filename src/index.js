@@ -22,6 +22,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check
+app.get('/api', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
