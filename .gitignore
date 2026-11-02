@@ -1,0 +1,34 @@
+# Secrets — real Atlas / JWT credentials live here, never commit them
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage / test output
+coverage/
+.nyc_output/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
