@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
@@ -7,6 +8,17 @@ const User = require('../models/User');
 const { signToken, verifyToken } = require('../utils/token');
 
 const router = express.Router();
+
+// Constant-time string compare, used so a mismatching secret_key can't be
+// distinguished from a matching one by response-time (same reasoning as
+// comparing passwords/tokens: short-circuiting `===` leaks a timing signal).
+function secretsEqual(a, b) {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // Rate limiter: max 10 login attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
@@ -111,53 +123,78 @@ router.post('/login', loginLimiter, async (req, res) => {
         .json({ error: 'invalid_credentials', message: 'Invalid mobile or password.' });
     }
 
+    // An admin-triggered demo reset on a demo account is a deliberate
+    // override (e.g. "let them back in on their new phone, give them a
+    // fresh demo run") - it skips the device-binding and ban checks below
+    // for this one login. Read before either check runs; consumed further
+    // down once the reset is actually applied.
+    const resetDemoOverride = user.resetDemo && user.membershipType === 'demo';
+
     // --- Device binding ---
-    if (user.deviceId && user.deviceId !== deviceId) {
+    if (!resetDemoOverride && user.deviceId && user.deviceId !== deviceId) {
       return res.status(403).json({
         error: 'device_mismatch',
         message: 'This account is linked to another device. Contact admin.',
       });
     }
 
-    // Bind device if not yet set
-    if (!user.deviceId) {
+    // Bind device if not yet set, or unconditionally when the override
+    // above means this may be a new device for the account.
+    if (!user.deviceId || resetDemoOverride) {
       user.deviceId = deviceId;
     }
 
-    const now = new Date();
-
-    // --- Anti-reinstall-flagging (Option B) ----------------------------------
-    // The access token lives exactly 5 days and the app has no manual logout,
-    // so a legitimate user logs in at most once every ~5 days — meaning at most
-    // 2 logins can fall inside any 5-day window. A 3rd login from the same
-    // device inside 5 days is only possible via uninstall/reinstall loops
-    // (fresh token after every reinstall), so the account gets flagged.
-    const WINDOW_MS = 5 * 24 * 60 * 60 * 1000;
-
-    user.loginHistory = [now, ...user.loginHistory].slice(0, 10);
-    const recentLogins = user.loginHistory.filter(
-      (t) => t.getTime() > now.getTime() - WINDOW_MS
-    );
-
-    if (user.flagged) {
-      await user.save();
+    // Already-banned accounts stay banned. Nothing sets `flagged` anymore
+    // (the login-history/time-window check that used to is gone, per the
+    // new guard below), but an account flagged before this change — or by
+    // an admin — must not quietly regain access just because the
+    // mechanism that originally flagged it was removed. The reset override
+    // still bypasses this, same as the device check above.
+    if (user.flagged && !resetDemoOverride) {
       return res.status(403).json({
         error: 'account_violation',
         message: 'Your account has been flagged for violating app usage rules. Please contact admin.',
       });
     }
 
-    if (recentLogins.length >= 3) {
-      user.flagged = true;
-      user.secretKey = null;
-      user.secretKeyType = null;
-      user.secretKeyExpiresAt = null;
-      user.membershipType = 'none';
-      await user.save();
-      return res.status(403).json({
-        error: 'account_violation',
-        message: 'Your account has been flagged for violating app usage rules. Please contact admin.',
-      });
+    const now = new Date();
+    const isFirstLogin = user.loginedAt == null;
+
+    // --- Demo-scan-farming guard ---------------------------------------------
+    // The app sends whatever secret_key/membership_type it currently has
+    // cached on-device with every login. A legitimate user always has one
+    // after their first login; both coming back null on a LATER login means
+    // local storage was wiped (reinstall, cleared app data, ...) — the
+    // classic way to farm a fresh 20-scan demo count. Track consecutive
+    // occurrences and zero out the demo count once it happens too often,
+    // instead of blocking on a login-history time window.
+    const clientSecretKey = req.body.secret_key || req.body.secretKey || null;
+    const clientMembershipType =
+      req.body.membership_type || req.body.membershipType || null;
+    let forceDemoScansZero = false;
+
+    // An admin-triggered resend means the device is *expected* to show up
+    // with nothing cached (that's the whole point) — this login's null
+    // key/membership shouldn't count as a farming attempt.
+    const skipFarmingGuard = resetDemoOverride || user.resendSecretKey;
+
+    // Only a key that actually matches what's on file resets the streak -
+    // anything else (absent, or present-but-wrong) is treated the same way,
+    // so sending fabricated non-null junk can't dodge detection any better
+    // than sending null outright.
+    const keyMatches =
+      Boolean(clientSecretKey) &&
+      Boolean(clientMembershipType) &&
+      secretsEqual(clientSecretKey, user.secretKey) &&
+      clientMembershipType === user.membershipType;
+
+    if (keyMatches) {
+      user.nullKeyLoginCount = 0;
+    } else if (!isFirstLogin && !skipFarmingGuard) {
+      user.nullKeyLoginCount = (user.nullKeyLoginCount || 0) + 1;
+      if (user.nullKeyLoginCount > 3 && user.membershipType === 'demo') {
+        forceDemoScansZero = true;
+      }
     }
 
     // --- Backfill / demo handling: legacy users created before demo keys
@@ -184,10 +221,16 @@ router.post('/login', loginLimiter, async (req, res) => {
       user.membershipType = 'demo';
     }
 
+    // --- Consume the one-shot admin flags -------------------------------------
+    // Both were only read above (resetDemoOverride, skipFarmingGuard); clear
+    // them now so they fire exactly once, on this login.
+    const applyDemoReset = resetDemoOverride; // already required membershipType === 'demo'
+    if (user.resetDemo) user.resetDemo = false;
+    if (user.resendSecretKey) user.resendSecretKey = false;
+
     // --- Generate JWT ---
     // First-ever login? Then the server hands the demo scan count to the app
     // once; after that the count lives purely on-device and is never sent.
-    const isFirstLogin = user.loginedAt == null;
     const { token, expiresAt } = signToken(user, deviceId);
 
     // --- Persist session info ---
@@ -196,18 +239,23 @@ router.post('/login', loginLimiter, async (req, res) => {
     user.loginedAt = now;
     await user.save();
 
+    // Resolve the one demo_scans_remaining value to send, if any - an
+    // explicit admin reset always wins over the automatic farming-guard
+    // zero-out, which in turn only applies on later (non-first) logins.
+    let demoScansOverride = null;
+    if (isFirstLogin && user.secretKeyType === 'demo') demoScansOverride = 20;
+    if (forceDemoScansZero) demoScansOverride = 0;
+    if (applyDemoReset) demoScansOverride = 20;
+
     // Response uses snake_case to match the Flutter client's _saveAuthData parser.
-    // demo_scans_remaining is sent ONLY on the first login (new users pick up
-    // the starting 20 from the server); on later logins the field is absent
-    // and the device-local count takes over.
     return res.status(200).json({
       access_token: token,
       expires_at: expiresAt.toISOString(),
       secret_key: user.secretKey,
       secret_key_type: user.secretKeyType,
       secret_key_expiry: user.secretKeyExpiresAt ? user.secretKeyExpiresAt.toISOString() : null,
-      ...(isFirstLogin && user.secretKeyType === 'demo'
-          ? { demo_scans_remaining: 20 }
+      ...(demoScansOverride !== null
+          ? { demo_scans_remaining: demoScansOverride }
           : {}),
       membership_type: user.membershipType,
       name: user.name,

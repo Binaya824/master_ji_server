@@ -30,11 +30,15 @@ const userSchema = new mongoose.Schema(
     },
     flagged: {
       type: Boolean,
-      default: false, // > = 3 logins within 5 days from the same device (reinstall farming)
+      default: false, // legacy reinstall-farming flag; nothing sets this anymore
     },
     loginHistory: {
       type: [Date],
-      default: [], // last ~10 login timestamps (no scan count stored — abuse detection only)
+      default: [], // legacy; unused
+    },
+    nullKeyLoginCount: {
+      type: Number,
+      default: 0, // consecutive non-first logins with no cached secret_key/membership_type — a wiped device re-logging in to farm a fresh demo count
     },
     accessToken: {
       type: String,
@@ -69,6 +73,14 @@ const userSchema = new mongoose.Schema(
     membershipExpiresAt: {
       type: Date,
       default: null,
+    },
+    resetDemo: {
+      type: Boolean,
+      default: false, // admin-set: next login gives a demo account a fresh 20-scan count and skips the device-binding/ban checks once; consumed (reset to false) after use
+    },
+    resendSecretKey: {
+      type: Boolean,
+      default: false, // admin-set: next login's secret_key/membership_type resend to the device isn't counted toward the demo-farming guard; consumed (reset to false) after use
     },
   },
   {

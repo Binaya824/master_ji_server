@@ -112,4 +112,71 @@ router.post('/clear-flag', adminAuth, async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// POST /api/admin/reset-demo
+// ---------------------------------------------------------------------------
+// Schedules a one-shot demo-scan reset: on the account's next login (while
+// still membershipType 'demo'), the device gets a fresh 20-scan count and
+// that login skips the device-binding/ban checks once. Consumed automatically
+// on that next login - no need to clear it manually.
+router.post('/reset-demo', adminAuth, async (req, res) => {
+  try {
+    const { mobile } = req.body;
+    if (!mobile) {
+      return res
+        .status(400)
+        .json({ error: 'validation_error', message: 'mobile is required.' });
+    }
+
+    const user = await User.findOne({ mobile: mobile.trim() });
+    if (!user) {
+      return res.status(404).json({ error: 'not_found', message: 'No user found.' });
+    }
+
+    user.resetDemo = true;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'Demo reset scheduled for next login.' });
+  } catch (err) {
+    console.error('[AdminResetDemo]', err);
+    return res.status(500).json({ error: 'server_error', message: 'Failed to schedule demo reset.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/resend-secret-key
+// ---------------------------------------------------------------------------
+// Schedules a one-shot secret-key resend: on the account's next login, that
+// login isn't counted toward the demo-farming guard even if the device shows
+// up with nothing cached (expected, since that's usually why this was asked
+// for). The account's current secret_key/membership_type go out in the
+// response as usual. Consumed automatically on that next login.
+router.post('/resend-secret-key', adminAuth, async (req, res) => {
+  try {
+    const { mobile } = req.body;
+    if (!mobile) {
+      return res
+        .status(400)
+        .json({ error: 'validation_error', message: 'mobile is required.' });
+    }
+
+    const user = await User.findOne({ mobile: mobile.trim() });
+    if (!user) {
+      return res.status(404).json({ error: 'not_found', message: 'No user found.' });
+    }
+
+    user.resendSecretKey = true;
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'Secret key resend scheduled for next login.' });
+  } catch (err) {
+    console.error('[AdminResendSecretKey]', err);
+    return res.status(500).json({ error: 'server_error', message: 'Failed to schedule secret key resend.' });
+  }
+});
+
 module.exports = router;
