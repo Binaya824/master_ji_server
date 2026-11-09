@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const connectDB = require('./db');
 const authRoutes = require('./routes/authRoutes');
@@ -15,8 +16,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static public folder (Privacy Policy & Account Deletion webpage)
+app.use(express.static(path.join(__dirname, '../public')));
+
 // ---------------------------------------------------------------------------
-// Routes
+// Webpage Routes (Google Play Privacy Policy & Account Deletion URL)
+// ---------------------------------------------------------------------------
+app.get(['/', '/privacy', '/privacy-policy', '/delete-account'], (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// ---------------------------------------------------------------------------
+// API Routes
 // ---------------------------------------------------------------------------
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

@@ -56,10 +56,12 @@ All routes are prefixed with `/api`.
 
 ### Auth
 
-| Method | Endpoint            | Auth     | Description              |
-|--------|---------------------|----------|--------------------------|
-| POST   | `/api/auth/register`| None     | Register a new user      |
-| POST   | `/api/auth/login`   | None     | Login (rate-limited)     |
+| Method | Endpoint                   | Auth     | Description                         |
+|--------|----------------------------|----------|-------------------------------------|
+| POST   | `/api/auth/register`       | None     | Register a new user                 |
+| POST   | `/api/auth/login`          | None     | Login (rate-limited)                |
+| POST   | `/api/auth/demo-completed` | Bearer   | Mark 20-scan demo finished in DB    |
+| POST   | `/api/auth/delete-account` | Bearer   | Permanently delete user account & DB|
 
 ### Admin
 

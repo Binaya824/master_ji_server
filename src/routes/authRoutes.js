@@ -322,4 +322,33 @@ router.post('/demo-completed', demoAuth, async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// POST /api/auth/delete-account
+// DELETE /api/auth/delete-account
+// ---------------------------------------------------------------------------
+// Play Store policy requirement: permanently deletes the user account & data.
+const handleDeleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: 'not_found', message: 'Account not found or already deleted.' });
+    }
+
+    await User.findByIdAndDelete(req.userId);
+    console.log(`[DeleteAccount] Permanently deleted user: ${user.mobile} (${user._id})`);
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'Account deleted successfully.' });
+  } catch (err) {
+    console.error('[DeleteAccount]', err);
+    return res.status(500).json({ error: 'server_error', message: 'Failed to delete account.' });
+  }
+};
+
+router.post('/delete-account', demoAuth, handleDeleteAccount);
+router.delete('/delete-account', demoAuth, handleDeleteAccount);
+
 module.exports = router;
