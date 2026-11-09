@@ -34,6 +34,10 @@
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg);
@@ -43,19 +47,19 @@
     }
 
     header {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.95);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(8px);
-      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .nav-container {
       max-width: 960px;
       margin: 0 auto;
-      padding: 1rem 1.5rem;
+      padding: 0.9rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -87,7 +91,7 @@
 
     .nav-links {
       display: flex;
-      gap: 1.25rem;
+      gap: 0.5rem;
     }
 
     .nav-links a {
@@ -95,23 +99,26 @@
       text-decoration: none;
       font-weight: 600;
       font-size: 0.9rem;
-      transition: color 0.2s;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
     }
 
-    .nav-links a:hover {
-      color: var(--primary);
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--primary-dark);
+      background: var(--primary-soft);
     }
 
     .badge-playstore {
       background: var(--primary-soft);
       color: var(--primary-dark);
-      padding: 0.25rem 0.6rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 99px;
       font-size: 0.75rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.4rem;
     }
 
     main {
@@ -172,28 +179,32 @@
       font-weight: 500;
     }
 
-    .nav-tabs {
+    /* Quick jump bar */
+    .quick-jump-bar {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 0.5rem;
+      margin-bottom: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
     }
 
-    .tab-btn {
-      background: none;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.95rem;
-      font-weight: 700;
-      font-family: inherit;
+    .jump-btn {
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.88rem;
+      font-weight: 600;
       color: var(--text-muted);
-      cursor: pointer;
       border-radius: var(--radius-sm);
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .tab-btn.active {
+    .jump-btn:hover, .jump-btn.active {
       color: var(--primary);
       background: var(--primary-soft);
     }
@@ -202,25 +213,47 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 2rem;
-      margin-bottom: 1.75rem;
+      padding: 2.25rem;
+      margin-bottom: 2rem;
       box-shadow: var(--shadow-sm);
+      /* Scroll offset prevents sticky navbar from obscuring section title */
+      scroll-margin-top: 90px;
+      transition: border-color 0.3s;
+    }
+
+    .content-card:target {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-soft), var(--shadow-sm);
     }
 
     h2 {
-      font-size: 1.35rem;
+      font-size: 1.45rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      margin-bottom: 1.2rem;
       display: flex;
       align-items: center;
       gap: 0.6rem;
       letter-spacing: -0.01em;
+      color: var(--text);
+    }
+
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
     }
 
     h3 {
-      font-size: 1.1rem;
+      font-size: 1.12rem;
       font-weight: 600;
-      margin: 1.25rem 0 0.5rem 0;
+      margin: 1.35rem 0 0.5rem 0;
+      color: var(--text);
     }
 
     p, li {
@@ -301,9 +334,10 @@
     }
 
     .contact-table th, .contact-table td {
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
       text-align: left;
       border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
     }
 
     .contact-table th {
@@ -361,27 +395,28 @@
       margin-top: 4rem;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
       h1 { font-size: 1.75rem; }
       .hero-card { padding: 1.75rem 1.25rem; }
-      .content-card { padding: 1.25rem; }
+      .content-card { padding: 1.4rem; }
       .nav-links { display: none; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Top Header Navigation -->
   <header>
     <div class="nav-container">
-      <a href="#" class="brand">
+      <a href="#overview" class="brand">
         <div class="brand-icon">M</div>
         <span>MasterJi</span>
       </a>
       <div class="nav-links">
-        <a href="#privacy">Privacy Policy</a>
-        <a href="#camera">Camera & Photos</a>
-        <a href="#deletion">Account Deletion</a>
-        <a href="#contact">Contact</a>
+        <a href="#privacy" id="nav-privacy">Privacy Policy</a>
+        <a href="#camera" id="nav-camera">Camera & Photos</a>
+        <a href="#deletion" id="nav-deletion">Account Deletion</a>
+        <a href="#contact" id="nav-contact">Contact</a>
       </div>
       <span class="badge-playstore">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.4L16.2 12 3.6 22.6c-.4-.4-.6-.9-.6-1.6V3c0-.7.2-1.2.6-1.6zm13.7 9.5L14.7 9.4 4.5 1.7c.3-.1.6-.2 1-.2.5 0 1 .1 1.4.4l10.4 9zm0 2.2l-10.4 9c-.4.3-.9.4-1.4.4-.4 0-.7-.1-1-.2l10.2-7.7 2.6-1.5zm1.5-1.1l4.4-2.5c.8-.5.8-1.5 0-2l-4.4-2.5-1.7 1.7 1.7 5.3z"/></svg>
@@ -391,171 +426,192 @@
   </header>
 
   <main>
-    <div class="hero-card">
+    <!-- Hero Header -->
+    <div class="hero-card" id="overview">
       <span class="badge-playstore">Official Document</span>
       <h1>MasterJi Privacy Policy & User Data Guidelines</h1>
-      <p class="subtitle">Complete transparency regarding how MasterJi collects, processes, protects, and deletes your data.</p>
+      <p class="subtitle">Complete transparency regarding how MasterJi collects, processes, protects, and deletes user data.</p>
       
       <div class="meta-pills">
-        <span>App: MasterJi (OMR Sheet Checker)</span>
+        <span>App: MasterJi (OMR Sheet Scanner)</span>
         <span>Target: Educators & Teachers (18+)</span>
         <span>Effective Date: November 2026</span>
         <span>Version: 1.0.0</span>
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('privacy')">Privacy Policy</button>
-      <button class="tab-btn" onclick="switchTab('deletion')">Account & Data Deletion</button>
-      <button class="tab-btn" onclick="switchTab('camera')">Camera & OMR Security</button>
+    <!-- Quick Jump Sub-Navigation -->
+    <div class="quick-jump-bar">
+      <a href="#privacy" class="jump-btn">
+        <span class="section-icon" style="width:22px; height:22px; font-size:12px;">🛡️</span>
+        Privacy Policy
+      </a>
+      <a href="#data-collection" class="jump-btn">
+        <span class="section-icon" style="width:22px; height:22px; font-size:12px;">📋</span>
+        Data Collected
+      </a>
+      <a href="#camera" class="jump-btn">
+        <span class="section-icon" style="width:22px; height:22px; font-size:12px;">📷</span>
+        Camera & Photos
+      </a>
+      <a href="#deletion" class="jump-btn">
+        <span class="section-icon" style="width:22px; height:22px; font-size:12px;">🗑️</span>
+        Account Deletion
+      </a>
+      <a href="#contact" class="jump-btn">
+        <span class="section-icon" style="width:22px; height:22px; font-size:12px;">✉️</span>
+        Contact
+      </a>
     </div>
 
-    <!-- Section 1: Privacy Policy -->
-    <section id="tab-privacy">
-      <div class="content-card" id="privacy">
-        <h2>1. Introduction</h2>
-        <p>MasterJi ("we", "our", or "us") is dedicated to simplifying paper evaluation for educators while respecting user privacy and data security. This Privacy Policy details our practices regarding the collection, usage, and safeguarding of information when using the <strong>MasterJi</strong> mobile application.</p>
-        
-        <div class="highlight-box">
-          <p><strong>Core Promise:</strong> MasterJi does not sell, rent, or trade your personal information. Physical OMR sheet images are analyzed using computer vision (OpenCV) directly on your device, keeping student scores and sheets private.</p>
-        </div>
-      </div>
-
-      <div class="content-card">
-        <h2>2. Information We Collect</h2>
-        <p>We only collect minimal information strictly necessary to provide authentication, license verification, and core app functionality:</p>
-        
-        <h3>A. Account & Profile Information</h3>
-        <ul>
-          <li><strong>Full Name:</strong> Provided by you during registration to personalize your profile and exam headers.</li>
-          <li><strong>Mobile Phone Number:</strong> Used as your unique account identifier for login and account recovery.</li>
-          <li><strong>Password Hash:</strong> Passwords are cryptographically hashed using <code>bcrypt</code> (10 salt rounds) before saving to the database. We never store or know your raw password.</li>
-          <li><strong>School / Institute Name:</strong> Optional field provided in your profile for exam sheet headers.</li>
-        </ul>
-
-        <h3>B. Device & Security Identifiers</h3>
-        <ul>
-          <li><strong>Device Identifier (UUID):</strong> Generated on first login to bind license keys to your specific device, preventing license tampering and account abuse.</li>
-          <li><strong>Access Tokens & License Keys:</strong> Temporary JSON Web Tokens (JWT with 5-day expiration) and random opaque license tokens (e.g. <code>sk_demo_...</code> or <code>sk_paid_...</code>) stored securely in Android Keystore / iOS Keychain.</li>
-        </ul>
-
-        <h3>C. Exam Records & Scoring Data</h3>
-        <ul>
-          <li>Subject names, answer keys, question counts, and student roll scores that you choose to create within the app are saved locally on your device storage (<code>masterji/exams.json</code>).</li>
-        </ul>
-      </div>
-
-      <div class="content-card" id="camera">
-        <h2>3. Camera & Photo Library Access</h2>
-        <p>To detect and score bubbles on OMR answer sheets, MasterJi requests access to your device's Camera and Gallery:</p>
-        
-        <div class="highlight-box">
-          <p><strong>On-Device Image Processing:</strong></p>
-          <p>The OMR image processing pipeline (Hough circle detection, perspective alignment, and Otsu ink ratio scoring) runs <strong>entirely locally on your smartphone processor</strong> via OpenCV. We do NOT upload raw student exam sheet photos to any remote server or external cloud AI service.</p>
-        </div>
-        <ul>
-          <li><strong>Camera Permission:</strong> Required solely to take live photos of physical answer sheets.</li>
-          <li><strong>Storage / Gallery Access:</strong> Required only when you select an existing answer sheet photo from your gallery.</li>
-        </ul>
-      </div>
-
-      <div class="content-card">
-        <h2>4. Data Storage and Protection</h2>
-        <p>We implement robust physical, technical, and organizational security measures:</p>
-        <ul>
-          <li><strong>Encrypted Transport:</strong> All API communication between the mobile app and server is encrypted in transit using industry-standard TLS / HTTPS.</li>
-          <li><strong>Secure Local Storage:</strong> Sensitive credentials (JWT tokens, secret keys) are stored on the device using <code>FlutterSecureStorage</code> backed by the Android Keystore / iOS Keychain.</li>
-          <li><strong>Minimal Server Footprint:</strong> Scans, image buffers, and scoring calculations do not require continuous server round-trips.</li>
-        </ul>
-      </div>
-
-      <div class="content-card">
-        <h2>5. Children's Privacy</h2>
-        <p>MasterJi is a productivity tool intended for educators, school teachers, and adult administrators (18 years of age or older). MasterJi does not knowingly collect personally identifiable information from children under 13. Any student scores evaluated using the scanner remain stored locally under the control of the educator.</p>
+    <!-- 1. Introduction -->
+    <section class="content-card" id="privacy">
+      <h2>
+        <span class="section-icon">🛡️</span>
+        1. Introduction & Overview
+      </h2>
+      <p>MasterJi ("we", "our", or "us") is an assessment utility designed to help teachers, schools, and coaching educators grade physical OMR sheets quickly and accurately using computer vision. We respect your privacy and are committed to protecting all personal information.</p>
+      
+      <div class="highlight-box">
+        <p><strong>Core Privacy Principle:</strong> MasterJi does not sell, rent, or monetize your personal information or student data. All optical mark recognition (OMR) calculations and bubble image detections occur <strong>100% on your device</strong> using client-side OpenCV algorithms.</p>
       </div>
     </section>
 
-    <!-- Section 2: Account Deletion (Google Play Policy Compliant) -->
-    <section id="tab-deletion" style="display: none;">
-      <div class="content-card" id="deletion">
-        <h2>Account & Data Deletion Policy</h2>
-        <p>In accordance with Google Play's User Data policy on account deletion, MasterJi provides simple, permanent account deletion both <strong>inside the app</strong> and <strong>via this public webpage</strong>.</p>
+    <!-- 2. Data We Collect -->
+    <section class="content-card" id="data-collection">
+      <h2>
+        <span class="section-icon">📋</span>
+        2. Information We Collect
+      </h2>
+      <p>We collect only the minimal information strictly necessary to provide authentication, device licensing, and app functionality:</p>
+      
+      <h3>A. Account & Profile Information</h3>
+      <ul>
+        <li><strong>Full Name:</strong> Collected during registration to display on your educator profile and printed report headers.</li>
+        <li><strong>Mobile Phone Number:</strong> Acts as your unique account credential for authentication and account recovery.</li>
+        <li><strong>Password Hash:</strong> Passwords are cryptographically salted and hashed with <code>bcrypt</code> (cost factor 10) before reaching storage. We never store or transmit your raw password.</li>
+        <li><strong>School Name (Optional):</strong> Stored locally or optionally provided in profile settings for evaluation reports.</li>
+      </ul>
 
-        <div class="alert-danger">
-          <h3>Permanent Deletion Warning</h3>
-          <p>Deleting your MasterJi account is permanent and cannot be undone. All your user profile data, active licence keys, scan credits, and server records will be permanently erased from our database.</p>
-        </div>
+      <h3>B. Device & Licensing Identifiers</h3>
+      <ul>
+        <li><strong>Device Identifier:</strong> A unique UUID generated once upon installation to bind license keys to your phone, preventing unauthorized account sharing or license tampering.</li>
+        <li><strong>Authentication Tokens & Secret Keys:</strong> Standard JSON Web Tokens (5-day expiration) and opaque license tokens (e.g. <code>sk_demo_...</code> or <code>sk_paid_...</code>) stored securely inside the Android Keystore / iOS Keychain.</li>
+      </ul>
 
-        <h3>Method 1: In-App Instant Deletion (Recommended)</h3>
-        <p>You can delete your account directly inside the MasterJi app in seconds:</p>
-        <ol class="step-list">
-          <li>Open the <strong>MasterJi</strong> app on your mobile device.</li>
-          <li>Tap the <strong>Profile</strong> tab in the bottom navigation bar.</li>
-          <li>Scroll down past the "Log out" button and tap <strong style="color: var(--danger);">"Delete Account"</strong>.</li>
-          <li>Read the confirmation prompt and tap <strong>"Delete Forever"</strong>.</li>
-          <li>Your account and database records will be erased immediately, and local credentials will be wiped from your device.</li>
-        </ol>
+      <h3>C. Scoring Data & Answer Keys</h3>
+      <ul>
+        <li>Exam question configurations, answer keys, subject names, and student scores that you record are stored locally on your device (in <code>masterji/exams.json</code>).</li>
+      </ul>
+    </section>
 
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
+    <!-- 3. Camera & Photos (OMR Processing) -->
+    <section class="content-card" id="camera">
+      <h2>
+        <span class="section-icon">📷</span>
+        3. Camera & Photo Library Access
+      </h2>
+      <p>To detect and score bubbles on physical OMR answer sheets, MasterJi requests permission to use your Camera and Photo Library:</p>
+      
+      <div class="highlight-box">
+        <p><strong>Zero Cloud Image Upload:</strong></p>
+        <p>The OMR image detection pipeline (Hough circle detection, perspective correction, grid grouping, and Otsu dark-ratio scoring) runs <strong>entirely locally on your smartphone processor</strong> via OpenCV Dart. We do NOT upload raw student exam sheet photos to any remote server or external cloud AI service.</p>
+      </div>
 
-        <h3>Method 2: Web-Based Account Deletion Request</h3>
-        <p>If you have uninstalled the app or cannot access your phone, you can request manual account deletion using the form below or by emailing our support team:</p>
+      <ul>
+        <li><strong>Camera Permission:</strong> Required solely to take live photos of student answer sheets.</li>
+        <li><strong>Photo Library Access:</strong> Required only when you choose to import an existing answer sheet photo from your gallery.</li>
+        <li><strong>Image Retention:</strong> Processed sheets are held in temporary memory during scoring and are saved in local application storage only if you choose to record the session.</li>
+      </ul>
+    </section>
 
-        <div class="deletion-form-card">
-          <h3 style="margin-top: 0;">Request Account Deletion via Email</h3>
-          <p style="font-size: 0.9rem; color: var(--text-muted);">Send an email to our support team with your registered mobile number, and we will permanently delete your account within 48 hours.</p>
+    <!-- 4. Security & Storage -->
+    <section class="content-card" id="security">
+      <h2>
+        <span class="section-icon">🔒</span>
+        4. Data Storage and Protection
+      </h2>
+      <p>We implement comprehensive security measures to safeguard your information:</p>
+      <ul>
+        <li><strong>Encrypted Transport:</strong> All API communication between the mobile app and server is encrypted in transit using industry-standard TLS / HTTPS.</li>
+        <li><strong>Hardware-Backed Keystore:</strong> Sensitive credentials (JWT tokens, secret keys) are stored on the device using <code>FlutterSecureStorage</code> backed by the Android Keystore / iOS Keychain.</li>
+        <li><strong>Minimal Server Footprint:</strong> Scans, image buffers, and scoring calculations do not require continuous server round-trips.</li>
+      </ul>
+    </section>
 
-          <table class="contact-table" style="margin-bottom: 1.5rem;">
-            <tr>
-              <th>Recipient</th>
-              <td><strong>support@masterji.app</strong></td>
-            </tr>
-            <tr>
-              <th>Subject Line</th>
-              <td><code>Request Account Deletion - MasterJi</code></td>
-            </tr>
-            <tr>
-              <th>Required Info</th>
-              <td>Your registered 10-digit mobile number and full name.</td>
-            </tr>
-            <tr>
-              <th>Data Erased</th>
-              <td>Name, Mobile Number, Password Hash, Device ID, Active Licenses, Session Tokens.</td>
-            </tr>
-          </table>
+    <!-- 5. Account & Data Deletion (Play Store Compliant) -->
+    <section class="content-card" id="deletion">
+      <h2>
+        <span class="section-icon">🗑️</span>
+        5. Account & Data Deletion Policy
+      </h2>
+      <p>In accordance with Google Play's User Data policy on account deletion, MasterJi provides permanent account and data deletion both <strong>inside the app</strong> and <strong>via this public webpage</strong>.</p>
 
-          <a href="mailto:support@masterji.app?subject=Request%20Account%20Deletion%20-%20MasterJi&body=Hello%20MasterJi%20Support%2C%0A%0APlease%20permanently%20delete%20my%20MasterJi%20account%20and%20all%20associated%20data.%0A%0ARegistered%20Name%3A%20%0ARegistered%20Mobile%20Number%3A%20%0A%0AThank%20you." class="btn btn-danger">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-            Send Deletion Request Email
-          </a>
-        </div>
+      <div class="alert-danger">
+        <h3>Permanent Deletion Warning</h3>
+        <p>Deleting your MasterJi account is permanent and cannot be undone. All your user profile data, active licence keys, scan credits, and server records will be permanently erased from our database.</p>
+      </div>
+
+      <h3>Method 1: In-App Instant Deletion (Recommended)</h3>
+      <p>You can delete your account directly inside the MasterJi app in seconds:</p>
+      <ol class="step-list">
+        <li>Open the <strong>MasterJi</strong> app on your mobile device.</li>
+        <li>Tap the <strong>Profile</strong> tab in the bottom navigation bar.</li>
+        <li>Scroll down past the "Log out" button and tap <strong style="color: var(--danger);">"Delete Account"</strong>.</li>
+        <li>Read the confirmation prompt and tap <strong>"Delete Forever"</strong>.</li>
+        <li>Your account and database records will be erased immediately, and all local credentials will be wiped from your device.</li>
+      </ol>
+
+      <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+      <h3>Method 2: Web-Based Account Deletion Request</h3>
+      <p>If you have uninstalled the app or cannot access your phone, you can request manual account deletion using the form below or by emailing our support team:</p>
+
+      <div class="deletion-form-card">
+        <h3 style="margin-top: 0;">Request Account Deletion via Email</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Send an email to our support team with your registered mobile number, and we will permanently delete your account within 48 hours.</p>
+
+        <table class="contact-table" style="margin-bottom: 1.5rem;">
+          <tr>
+            <th>Recipient</th>
+            <td><strong>support@masterji.app</strong></td>
+          </tr>
+          <tr>
+            <th>Subject Line</th>
+            <td><code>Request Account Deletion - MasterJi</code></td>
+          </tr>
+          <tr>
+            <th>Required Info</th>
+            <td>Your registered 10-digit mobile number and full name.</td>
+          </tr>
+          <tr>
+            <th>Data Erased</th>
+            <td>Name, Mobile Number, Password Hash, Device ID, Active Licenses, Session Tokens.</td>
+          </tr>
+        </table>
+
+        <a href="mailto:support@masterji.app?subject=Request%20Account%20Deletion%20-%20MasterJi&body=Hello%20MasterJi%20Support%2C%0A%0APlease%20permanently%20delete%20my%20MasterJi%20account%20and%20all%20associated%20data.%0A%0ARegistered%20Name%3A%20%0ARegistered%20Mobile%20Number%3A%20%0A%0AThank%20you." class="btn btn-danger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          Send Deletion Request Email
+        </a>
       </div>
     </section>
 
-    <!-- Section 3: Camera & Security Details -->
-    <section id="tab-camera" style="display: none;">
-      <div class="content-card">
-        <h2>Camera Processing Architecture</h2>
-        <p>MasterJi utilizes a secure, client-side image processing pipeline designed for speed and data privacy:</p>
-        
-        <div class="highlight-box">
-          <h3>No Cloud Image Storage</h3>
-          <p>Captured sheets are converted to OpenCV <code>cv::Mat</code> structures in local memory, normalized to standard resolution, analyzed for bubble fillings, and outputted as scored result models.</p>
-        </div>
-
-        <h3>Data Retention Policy</h3>
-        <ul>
-          <li><strong>Captured Images:</strong> Stored strictly in application sandbox cache and deleted when the user clears cache or uninstalls the app.</li>
-          <li><strong>Score Results:</strong> Saved locally in <code>exams.json</code> on device.</li>
-          <li><strong>Server Transmission:</strong> Only non-biometric authentication metadata (name, mobile number, hashed credentials) is transmitted to the server.</li>
-        </ul>
-      </div>
+    <!-- 6. Children's Privacy -->
+    <section class="content-card" id="children">
+      <h2>
+        <span class="section-icon">🎓</span>
+        6. Children's Privacy
+      </h2>
+      <p>MasterJi is a productivity tool intended exclusively for educators, school teachers, and adult administrators (18 years of age or older). MasterJi does not knowingly collect personally identifiable information from children under 13. Any student scores evaluated using the scanner remain stored locally under the control of the educator.</p>
     </section>
 
-    <!-- Contact Section -->
-    <div class="content-card" id="contact">
-      <h2>Contact Us</h2>
+    <!-- 7. Contact Section -->
+    <section class="content-card" id="contact">
+      <h2>
+        <span class="section-icon">✉️</span>
+        7. Contact Us
+      </h2>
       <p>If you have any questions, feedback, or concerns regarding our privacy practices or data policies, please reach out to us:</p>
       
       <table class="contact-table">
@@ -576,7 +632,7 @@
           <td>Education / Productivity</td>
         </tr>
       </table>
-    </div>
+    </section>
   </main>
 
   <footer>
@@ -585,26 +641,28 @@
   </footer>
 
   <script>
-    function switchTab(tabName) {
-      document.getElementById('tab-privacy').style.display = tabName === 'privacy' ? 'block' : 'none';
-      document.getElementById('tab-deletion').style.display = tabName === 'deletion' ? 'block' : 'none';
-      document.getElementById('tab-camera').style.display = tabName === 'camera' ? 'block' : 'none';
+    // Smooth scroll and active navbar link highlight
+    const sections = document.querySelectorAll('section.content-card, .hero-card');
+    const navLinks = document.querySelectorAll('.nav-links a, .quick-jump-bar a');
 
-      const buttons = document.querySelectorAll('.tab-btn');
-      buttons[0].classList.toggle('active', tabName === 'privacy');
-      buttons[1].classList.toggle('active', tabName === 'deletion');
-      buttons[2].classList.toggle('active', tabName === 'camera');
+    function updateActiveNav() {
+      let currentSection = '';
+      const scrollPos = window.scrollY + 120;
 
-      window.location.hash = tabName;
+      sections.forEach(sec => {
+        if (sec.offsetTop <= scrollPos) {
+          currentSection = sec.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href').replace('#', '');
+        link.classList.toggle('active', href === currentSection);
+      });
     }
 
-    // Auto-select tab if URL hash is present (e.g. #deletion)
-    window.addEventListener('DOMContentLoaded', () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash === 'deletion' || hash === 'camera' || hash === 'privacy') {
-        switchTab(hash);
-      }
-    });
+    window.addEventListener('scroll', updateActiveNav);
+    window.addEventListener('DOMContentLoaded', updateActiveNav);
   </script>
 </body>
 </html>
